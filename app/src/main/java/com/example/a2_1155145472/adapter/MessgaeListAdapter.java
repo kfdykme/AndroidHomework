@@ -16,6 +16,9 @@ public class MessgaeListAdapter extends RecyclerView.Adapter<MessgaeListAdapter.
 
     private List<Message.DataBean.MessagesBean> data = new ArrayList<>();
 
+    // 把最后一次拿到的消息存到静态， 哪来做测试吧， 懒得构造数据了
+    public static Message TEST_DATA = null;
+
     @NonNull
     @Override
     public InnerHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -42,6 +45,14 @@ public class MessgaeListAdapter extends RecyclerView.Adapter<MessgaeListAdapter.
         List<Message.DataBean.MessagesBean> messages = msg.data.messages;
         Collections.reverse(messages);
         data.addAll(messages);
+        notifyDataSetChanged();
+        TEST_DATA = msg;
+    }
+
+    public void addInLast(Message msg) {
+        List<Message.DataBean.MessagesBean> messages = msg.data.messages;
+        Collections.reverse(messages);
+        this.data.addAll(messages);
         notifyDataSetChanged();
     }
 
