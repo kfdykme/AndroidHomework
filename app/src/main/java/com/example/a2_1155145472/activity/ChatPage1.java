@@ -15,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -46,9 +48,10 @@ public class ChatPage1 extends AppCompatActivity {
     Retrofit retrofit = new Retrofit.Builder()
             .baseUrl("http://3.135.234.121/")
             .build();
+    private SwipeRefreshLayout srl;
 
 
-        @Override
+    @Override
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -67,6 +70,20 @@ public class ChatPage1 extends AppCompatActivity {
             inputText = (EditText) findViewById(R.id.input_text);
             send = (Button) findViewById(R.id.send);
 
+
+            srl = findViewById(R.id.srl);
+
+            srl.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    // 你在这把加载的内容补上就好了
+//                    if (page < totalPage) {
+//                        page++;
+//                        fetchMore();
+//                    }
+                }
+            });
+            
             //点击发送message
             send.setOnClickListener(new View.OnClickListener() {
                 @Override
