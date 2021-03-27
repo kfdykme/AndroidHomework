@@ -28,6 +28,8 @@ import com.example.a2_1155145472.SpacesItemDecoration;
 import com.example.a2_1155145472.adapter.MessgaeListAdapter;
 import com.example.a2_1155145472.domain.Message;
 import com.example.a2_1155145472.network.API;
+import com.example.a2_1155145472.websocket.WebSocketThread;
+import com.example.a2_1155145472.websocket.WebSocketView;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -36,7 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class ChatPage1 extends AppCompatActivity {
+public class ChatPage1 extends AppCompatActivity implements WebSocketView<Message> {
 
     private RecyclerView msgListView;
     private EditText inputText;
@@ -49,6 +51,8 @@ public class ChatPage1 extends AppCompatActivity {
             .baseUrl("http://3.135.234.121/")
             .build();
     private SwipeRefreshLayout srl;
+
+    private WebSocketThread webSocketThread;
 
 
     @Override
@@ -119,9 +123,36 @@ public class ChatPage1 extends AppCompatActivity {
             });
             initMessageList();
             initMsgs();
+
         }
 
-        //初始化 recyclerView
+    // 初始化ws
+    private void initWebSocket() {
+        // 在另一个线程做这件事
+        if (webSocketThread == null) {
+            webSocketThread = new WebSocketThread(this);
+            webSocketThread.start();
+        }
+    }
+
+    private void destoryWebSocket() {
+        webSocketThread.stop();
+        webSocketThread = null;
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        destoryWebSocket();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        initWebSocket();
+    }
+
+    //初始化 recyclerView
         public void initMessageList() {
             mAdapter = new MessgaeListAdapter();
             //设置垂直布局
@@ -179,6 +210,22 @@ public class ChatPage1 extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onWebSocketRender(Message data) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+
+                mAdapter.addInLast(data);
+                } catch (Exception e) {
+                    // 这个时候有可能其他内容还没初始化好， 偷懒trycatch一下
+                    Log.e("ChatPage1", "onWebSocketRender error \n" + e.getMessage());
+                }
+            }
+        });
     }
 }
 
