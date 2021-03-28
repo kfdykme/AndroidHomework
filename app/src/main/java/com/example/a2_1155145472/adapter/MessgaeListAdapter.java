@@ -49,10 +49,17 @@ public class MessgaeListAdapter extends RecyclerView.Adapter<MessgaeListAdapter.
         TEST_DATA = msg;
     }
 
-    public void addInLast(Message msg) {
+    //自动刷新数据
+    public void addBefore(Message msg) {
         List<Message.DataBean.MessagesBean> messages = msg.data.messages;
         Collections.reverse(messages);
-        this.data.addAll(messages);
+        data.addAll(0, messages);
+        notifyDataSetChanged();
+        TEST_DATA = msg;
+    }
+
+    public void addInLast(Message.DataBean.MessagesBean msg) {
+        this.data.add(msg);
         notifyDataSetChanged();
     }
 

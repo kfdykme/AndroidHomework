@@ -3,7 +3,7 @@
     package="com.example.a2_1155145472">
 
     <uses-permission android:name="android.permission.INTERNET"/>
-
+    <permission android:name="android.permission.INTERACT_ACROSS_USERS_FULL" android:protectionLevel="signature"/>
     <application
         android:allowBackup="true"
         android:icon="@drawable/cuhk"

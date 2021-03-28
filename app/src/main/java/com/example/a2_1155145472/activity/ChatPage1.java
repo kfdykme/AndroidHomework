@@ -38,7 +38,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class ChatPage1 extends AppCompatActivity implements WebSocketView<Message> {
+import static com.example.a2_1155145472.Constants.BASE_URL;
+
+public class ChatPage1 extends AppCompatActivity implements WebSocketView<Message.DataBean.MessagesBean> {
 
     private RecyclerView msgListView;
     private EditText inputText;
@@ -47,12 +49,16 @@ public class ChatPage1 extends AppCompatActivity implements WebSocketView<Messag
     private List<Message.DataBean.MessagesBean> messagesBeanList = new ArrayList<Message.DataBean.MessagesBean>();
     private SimpleDateFormat df = new SimpleDateFormat("mm:ss", Locale.CHINA);
     private int mRoomId;
+    private String mRoomName;
     Retrofit retrofit = new Retrofit.Builder()
-            .baseUrl("http://3.135.234.121/")
+            .baseUrl(BASE_URL)
             .build();
     private SwipeRefreshLayout srl;
 
     private WebSocketThread webSocketThread;
+
+    private int totalPage = 0;
+    private int curretnPage = 0;
 
 
     @Override
@@ -62,13 +68,14 @@ public class ChatPage1 extends AppCompatActivity implements WebSocketView<Messag
             setContentView(R.layout.chatpage);
             //拿到当前的chatromid
             mRoomId = getIntent().getIntExtra("roomid", 1);
-            Toolbar toolbar = findViewById(R.id.toolbar);
+            mRoomName = getIntent().getStringExtra("name");
+        Toolbar toolbar = findViewById(R.id.toolbar);
             setSupportActionBar(toolbar);
             ActionBar actionBar = getSupportActionBar();
             if (actionBar != null) {
                 actionBar.setHomeButtonEnabled(true);
                 actionBar.setDisplayHomeAsUpEnabled(true);
-                actionBar.setTitle(getIntent().getStringExtra("name") + mRoomId);
+                actionBar.setTitle(mRoomName+ mRoomId);
             }
             msgListView = findViewById(R.id.message_recycle);
             inputText = (EditText) findViewById(R.id.input_text);
@@ -81,10 +88,11 @@ public class ChatPage1 extends AppCompatActivity implements WebSocketView<Messag
                 @Override
                 public void onRefresh() {
                     // 你在这把加载的内容补上就好了
-//                    if (page < totalPage) {
-//                        page++;
-//                        fetchMore();
-//                    }
+                    if (curretnPage < totalPage) {
+                        fetchMore();
+                    } else  {
+                        renderMoreFinish();
+                    }
                 }
             });
             
@@ -108,7 +116,7 @@ public class ChatPage1 extends AppCompatActivity implements WebSocketView<Messag
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
-                                    initMsgs();
+//                                    initMsgs();
                                 }
                             }
 
@@ -123,7 +131,6 @@ public class ChatPage1 extends AppCompatActivity implements WebSocketView<Messag
             });
             initMessageList();
             initMsgs();
-
         }
 
     // 初始化ws
@@ -135,8 +142,19 @@ public class ChatPage1 extends AppCompatActivity implements WebSocketView<Messag
         }
     }
 
+    @Override
+    public String getClassRoom() {
+        return  mRoomName;
+    }
+
     private void destoryWebSocket() {
-        webSocketThread.stop();
+        if (webSocketThread != null)
+            try {
+            webSocketThread.interrupt();
+
+            } catch (Exception e) {
+
+            }
         webSocketThread = null;
     }
 
@@ -150,6 +168,13 @@ public class ChatPage1 extends AppCompatActivity implements WebSocketView<Messag
     protected void onStart() {
         super.onStart();
         initWebSocket();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Toast.makeText(getApplicationContext(), "join",
+                Toast.LENGTH_SHORT).show();
     }
 
     //初始化 recyclerView
@@ -166,7 +191,8 @@ public class ChatPage1 extends AppCompatActivity implements WebSocketView<Messag
         //加载第一页消息
         private void initMsgs() {
             API api = retrofit.create(API.class);
-            Call<ResponseBody> task = api.getMessages(mRoomId, 1);
+
+            Call<ResponseBody> task = api.getMessages(mRoomId, ++curretnPage);
             task.enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -175,6 +201,7 @@ public class ChatPage1 extends AppCompatActivity implements WebSocketView<Messag
                             String result = response.body().string();
                             Gson gson = new Gson();
                             Message message = gson.fromJson(result, Message.class);
+                            totalPage = message.data.totals_pages;
                             mAdapter.setData(message);
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -190,6 +217,44 @@ public class ChatPage1 extends AppCompatActivity implements WebSocketView<Messag
     }
 
 
+
+    private void fetchMore() {
+        API api = retrofit.create(API.class);
+
+        Call<ResponseBody> task = api.getMessages(mRoomId, ++curretnPage);
+        task.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.code() == HttpURLConnection.HTTP_OK) {
+                    try {
+                        String result = response.body().string();
+                        Gson gson = new Gson();
+                        Message message = gson.fromJson(result, Message.class);
+                        totalPage = message.data.totals_pages;
+                        mAdapter.addBefore(message);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                Log.d("ChatPage1", "onResponse..." + response);
+                renderMoreFinish();
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.d("ChatPage1", "onFailure..." + t.toString());
+                renderMoreFinish();
+            }
+        });
+
+
+    }
+
+    private void renderMoreFinish() {
+        if (srl.isRefreshing()) {
+            srl.setRefreshing(false);
+        }
+    }
 
 
     @Override
@@ -213,7 +278,7 @@ public class ChatPage1 extends AppCompatActivity implements WebSocketView<Messag
     }
 
     @Override
-    public void onWebSocketRender(Message data) {
+    public void onWebSocketRender(Message.DataBean.MessagesBean data) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -226,6 +291,16 @@ public class ChatPage1 extends AppCompatActivity implements WebSocketView<Messag
                 }
             }
         });
+    }
+
+    @Override
+    public int getClassRoomId() {
+        return  mRoomId;
+    }
+
+    @Override
+    public int getUserId() {
+        return 1155145472;
     }
 }
 

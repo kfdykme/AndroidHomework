@@ -19,7 +19,7 @@ public class Message {
          */
 
         public String current_page;
-        public int total_pages;
+        public int totals_pages;
         public List<MessagesBean> messages;
 
         public static class MessagesBean {

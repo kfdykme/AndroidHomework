@@ -5,5 +5,11 @@ package com.example.a2_1155145472.websocket;
  */
 public interface WebSocketView<T> {
 
+    String getClassRoom();
+
+    int getClassRoomId();
+
+    int getUserId();
+
     void onWebSocketRender(T data);
 }
