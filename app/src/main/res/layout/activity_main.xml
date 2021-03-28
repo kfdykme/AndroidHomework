@@ -21,12 +21,6 @@
     </com.google.android.material.appbar.AppBarLayout>
 
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="getRequest"
-        android:text="getRoom"
-        android:textAllCaps="false" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/result_list"

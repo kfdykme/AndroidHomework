@@ -10,7 +10,9 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
+import com.example.a2_1155145472.Constants;
 import com.example.a2_1155145472.R;
 import com.example.a2_1155145472.adapter.JsonResultListAdapter;
 import com.example.a2_1155145472.domain.JsonResult;
@@ -49,11 +51,13 @@ public class MainActivity extends AppCompatActivity {
         mResultList.setLayoutManager(new LinearLayoutManager(this));
         mAdapter = new JsonResultListAdapter();
         mResultList.setAdapter(mAdapter);
+
+        getRequest();
     }
 
-    public void getRequest(View view){
+    public void getRequest(){
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://3.135.234.121/")
+                .baseUrl(Constants.BASE_URL)
                 .build();
         API api = retrofit.create(API.class);
         Call<ResponseBody> task = api.getJson();
