@@ -1,5 +1,8 @@
 package com.example.a2_1155145472.activity;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -10,9 +13,12 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NotificationCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -60,6 +66,34 @@ public class ChatPage1 extends AppCompatActivity implements WebSocketView<Messag
     private int totalPage = 0;
     private int curretnPage = 0;
 
+
+    @Override
+    public void onShowNotification(Message.DataBean.MessagesBean bean) {
+        runOnUiThread(new Runnable() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
+            @Override
+            public void run() {
+                String channelId = "ChannelId"; // 通知渠道
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), channelId)
+                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setContentTitle(mRoomName)
+                        .setContentText(bean.message)
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+                NotificationManager notificationManager = getSystemService(NotificationManager.class);
+
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+
+                    NotificationChannel channel = new NotificationChannel(
+                            channelId,
+                            "通知的渠道名称",
+                            NotificationManager.IMPORTANCE_DEFAULT);
+                    notificationManager.createNotificationChannel(channel);
+                }
+                notificationManager.notify(8001, builder.build());
+            }
+        });
+    }
 
     @Override
         protected void onCreate(Bundle savedInstanceState) {

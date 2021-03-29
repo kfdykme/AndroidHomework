@@ -58,6 +58,13 @@ public class WebSocketThread extends Thread {
                     Message.DataBean.MessagesBean bean = new Gson().fromJson(text, Message.DataBean.MessagesBean.class);
                     if (bean != null) {
                         if (bean.chatroom_id == view.getClassRoomId()) {
+                            // TODO: 2021/3/29
+                            if (bean.user_id != view.getUserId()) {
+                                //应该是不是同一个用户才发通知的, 但是你现在代码里全是一个userid写死的 到时候自己改一改
+
+                            }
+                            // 把这一行放到上面
+                            view.onShowNotification(bean);
                             view.onWebSocketRender(bean);
                         }
                     }
